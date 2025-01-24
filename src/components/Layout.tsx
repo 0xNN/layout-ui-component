@@ -18,11 +18,18 @@ interface LayoutProps {
   logo?: React.ReactNode;  
   activePath: string;  
   logoCollapsed?: React.ReactNode;
-  onMenuItemClick: (path: string) => void;  
+  notifCount?: number;
+  role?: string;
+  userName?: string;
+  baseUrl?: string;
+  showNotification?: boolean;
+  onMenuItemClick: (path: string) => void;
+  handleLogout: () => void;
+  handleNotification: () => void;
 }  
-  
 interface LayoutState {  
   isSidebarCollapsed: boolean;  
+  scrollY: number;  
 }  
   
 class Layout extends Component<LayoutProps, LayoutState> {  
@@ -30,10 +37,16 @@ class Layout extends Component<LayoutProps, LayoutState> {
     super(props);  
     this.state = {  
       isSidebarCollapsed: false,  
+      scrollY: 0, // Inisialisasi scrollY  
     };  
   }  
+
+  handleScroll = (event: React.UIEvent<HTMLDivElement>) => {  
+    const scrollY = event.currentTarget.scrollTop; // Dapatkan scrollY  
+    this.setState({ scrollY }); // Kirim scrollY ke Navbar
+  }; 
   
-  toggleSidebar = () => {  
+  toggleSidebar = () => {
     this.setState(prevState => ({  
       isSidebarCollapsed: !prevState.isSidebarCollapsed,  
     }));  
@@ -52,9 +65,17 @@ class Layout extends Component<LayoutProps, LayoutState> {
       logo,  
       activePath,  
       logoCollapsed,
-      onMenuItemClick  
+      notifCount,
+      role,
+      userName,
+      baseUrl,
+      showNotification,
+      onMenuItemClick,
+      handleLogout,
+      handleNotification
      } = this.props;    
-    const { isSidebarCollapsed } = this.state;    
+    const { isSidebarCollapsed, scrollY } = this.state;
+    const menu = menuItems.filter(item => item.label !== null);  
   
     return (    
       <SearchProvider>    
@@ -65,12 +86,13 @@ class Layout extends Component<LayoutProps, LayoutState> {
                 <Sidebar    
                   title={title}    
                   showSearch={showSearch}    
-                  menuItems={menuItems}    
+                  menuItems={menu}    
                   isCollapsed={isSidebarCollapsed}    
                   bgColor={bgColor}    
                   color={color}    
                   activePath={activePath}    
-                  logoCollapsed={logoCollapsed}    
+                  logoCollapsed={logoCollapsed}  
+                  logo={logo}  
                   onMenuItemClick={onMenuItemClick}    
                 />    
                 <button    
@@ -90,12 +112,30 @@ class Layout extends Component<LayoutProps, LayoutState> {
                 </button>    
               </div>    
             )}    
-            <div className="flex-1 overflow-y-auto">
-              <Navbar bgColor={bgColor} color={color} projectName={projectName} logo={logo} logoCollapsed={logoCollapsed} isCollapsed={isSidebarCollapsed} /> 
-              <div className="flex-1 overflow-y-auto pt-16">      
-                <Content>      
-                  {children}      
-                </Content>      
+            <div className="flex-1 overflow-y-auto scroll-smooth" onScroll={this.handleScroll}>
+              <Navbar 
+                bgColor={bgColor} 
+                color={color} 
+                projectName={projectName} 
+                logo={logo} 
+                logoCollapsed={logoCollapsed} 
+                isCollapsed={isSidebarCollapsed} 
+                className={scrollY > 0 ? 'border border-stone-200 shadow-lg rounded-lg' : 'border border-stone-200 bg-white rounded-lg'}
+                scrollY={scrollY} 
+                notifCount={notifCount}
+                role={role}
+                userName={userName}
+                baseUrl={baseUrl}
+                showNotification={showNotification}
+                handleLogout={handleLogout}
+                handleNotification={handleNotification}
+              /> 
+              <div className="flex-1 pt-16">
+                <div className='pt-4'>
+                  <Content>      
+                    {children}
+                  </Content>      
+                </div>
               </div>    
             </div>    
           </div>    
